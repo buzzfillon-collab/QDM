@@ -1,3 +1,4 @@
+#include <libtorrent/alert.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/session_params.hpp>
 #include <libtorrent/torrent_info.hpp>
