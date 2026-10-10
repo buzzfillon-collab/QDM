@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
   Plus, Play, Pause, Trash2, Search, X,
-  ChevronsRight, StopCircle, Terminal
+  ChevronsRight, StopCircle, Terminal, Magnet
 } from 'lucide-react'
 import { useDownloadStore } from '../store/useDownloadStore'
+import { TorrentDialog } from './TorrentDialog'
 
 export function Toolbar() {
   const {
@@ -14,6 +15,7 @@ export function Toolbar() {
   } = useDownloadStore()
 
   const [showSearch, setShowSearch] = useState(false)
+  const [showTorrentManager, setShowTorrentManager] = useState(false)
 
   const selectedDownloads = downloads.filter(d => selectedIds.has(d.id))
   const hasSelection = selectedIds.size > 0
@@ -88,6 +90,15 @@ export function Toolbar() {
       >
         <Plus size={14} />
         <span>New Download</span>
+      </button>
+
+      <button
+        onClick={() => setShowTorrentManager(true)}
+        className="flex items-center gap-1.5 h-8 px-3 text-xs text-qdm-accent bg-qdm-accent/10 hover:bg-qdm-accent/20 rounded-lg transition-colors"
+        title="Open BitTorrent manager"
+      >
+        <Magnet size={14} />
+        <span>BitTorrent</span>
       </button>
 
       <div className="w-px h-5 bg-qdm-border mx-0.5" />
@@ -241,6 +252,7 @@ export function Toolbar() {
           <Search size={14} />
         </button>
       )}
+      {showTorrentManager && <TorrentDialog onClose={() => setShowTorrentManager(false)} />}
     </div>
   )
 }
