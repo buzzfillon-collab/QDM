@@ -116,13 +116,13 @@ export function TorrentDialog({ onClose }: { onClose: () => void }) {
         <div className="p-4 border-b border-qdm-border space-y-3">
           <label className="block text-[11px] text-qdm-textSecondary">Save to</label>
           <div className="flex gap-2">
-            <input value={savePath} onChange={e => setSavePath(e.target.value)} className="input-field flex-1 min-w-0" placeholder="Destination folder" />
+            <input value={savePath} onChange={e => setSavePath(e.target.value)} className="input-qdm flex-1 min-w-0" placeholder="Destination folder" />
             <button onClick={async () => {
               try { const path = await invoke<string | null>('dialog_select_folder'); if (path) setSavePath(path) } catch (e) { setError(String(e)) }
             }} className="btn-secondary px-3" title="Choose folder"><FolderOpen size={15} /></button>
           </div>
           <div className="flex gap-2">
-            <input value={uri} onChange={e => setUri(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void addMagnet() }} className="input-field flex-1 min-w-0" placeholder="magnet:?xt=urn:btih:..." />
+            <input value={uri} onChange={e => setUri(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void addMagnet() }} className="input-qdm flex-1 min-w-0" placeholder="magnet:?xt=urn:btih:..." />
             <button disabled={busy} onClick={() => void addMagnet()} className="btn-primary px-4 flex items-center gap-2 disabled:opacity-50"><Magnet size={14} /> Add magnet</button>
             <button disabled={busy} onClick={() => void addTorrentFile()} className="btn-secondary px-3 flex items-center gap-2 disabled:opacity-50"><FileUp size={14} /> .torrent</button>
           </div>
