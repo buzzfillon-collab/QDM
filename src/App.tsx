@@ -40,7 +40,7 @@ export default function App() {
   useEffect(() => {
     loadDownloads()
 
-    // Check for QDM app updates silently on startup
+    // Check for QDM Pro app updates silently on startup
     invoke<any>('update_check').then((result) => {
       if (result?.updateAvailable) {
         setUpdateBanner({ version: result.latestVersion })
