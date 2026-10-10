@@ -483,6 +483,16 @@ async fn config_set(
 
 // Dialog command
 #[tauri::command]
+async fn dialog_select_torrent_file(app_handle: AppHandle) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::{DialogExt, FilePath};
+    let (tx, rx) = tokio::sync::oneshot::channel::<Option<FilePath>>();
+    app_handle.dialog().file()
+        .add_filter("BitTorrent files", &["torrent"])
+        .pick_file(move |path| { tx.send(path).ok(); });
+    Ok(rx.await.ok().flatten().map(|p| format!("{}", p)))
+}
+
+#[tauri::command]
 async fn dialog_select_folder(app_handle: AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::{DialogExt, FilePath};
     let (tx, rx) = tokio::sync::oneshot::channel::<Option<FilePath>>();
@@ -1215,6 +1225,7 @@ pub fn run() {
             config_get,
             config_set,
             dialog_select_folder,
+            dialog_select_torrent_file,
             shell_open_external,
             update_check,
             update_get_version,
