@@ -8,10 +8,13 @@
 #include <libtorrent/version.hpp>
 #include <nlohmann/json.hpp>
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <stdexcept>
+#include <utility>
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
@@ -50,6 +53,57 @@ static json snapshot(const lt::torrent_handle& handle) {
     };
 }
 
+static std::string torrent_id(const lt::torrent_handle& handle) {
+    return handle.info_hashes().get_best().to_string();
+}
+
+static void persist_records(const std::string& state_file, const json& records) {
+    if (state_file.empty()) return;
+    const std::filesystem::path target(state_file);
+    if (target.has_parent_path()) std::filesystem::create_directories(target.parent_path());
+    const auto temporary = target.string() + ".tmp";
+    {
+        std::ofstream out(temporary, std::ios::binary | std::ios::trunc);
+        if (!out) throw std::runtime_error("Cannot write torrent session state.");
+        out << records.dump(2);
+        if (!out) throw std::runtime_error("Failed to write torrent session state.");
+    }
+    std::error_code ec;
+    std::filesystem::remove(target, ec);
+    std::filesystem::rename(temporary, target);
+}
+
+static lt::torrent_handle add_record(lt::session& session, const json& record, lt::error_code& ec) {
+    const auto kind = record.value("kind", "");
+    const auto save_path = record.value("savePath", "");
+    if (save_path.empty()) {
+        ec = lt::errors::invalid_torrent_handle;
+        return {};
+    }
+
+    lt::add_torrent_params params;
+    if (kind == "magnet") {
+        const auto uri = record.value("uri", "");
+        params = lt::parse_magnet_uri(uri, ec);
+        if (ec) return {};
+    } else if (kind == "file") {
+        const auto file = record.value("file", "");
+        if (file.empty() || !std::filesystem::exists(std::filesystem::u8path(file))) {
+            ec = lt::errors::file_too_short;
+            return {};
+        }
+        params = lt::load_torrent_file(file, ec);
+        if (ec) return {};
+    } else {
+        ec = lt::errors::invalid_torrent_handle;
+        return {};
+    }
+
+    params.save_path = save_path;
+    if (record.value("paused", false)) params.flags |= lt::torrent_flags::paused;
+    return session.add_torrent(std::move(params), ec);
+}
+
 int main() {
     try {
         lt::settings_pack settings;
@@ -60,6 +114,8 @@ int main() {
         settings.set_int(lt::settings_pack::alert_mask,
             lt::alert_category::error | lt::alert_category::status);
         lt::session session(settings);
+        std::string state_file;
+        json records = json::array();
         std::string line;
 
         while (std::getline(std::cin, line)) {
@@ -74,38 +130,57 @@ int main() {
 
             const std::string command = request.value("command", "");
             try {
-                if (command == "ping") {
+                if (command == "configure") {
+                    state_file = request.value("stateFile", "");
+                    if (!state_file.empty() && std::filesystem::exists(std::filesystem::u8path(state_file))) {
+                        std::ifstream in(std::filesystem::u8path(state_file), std::ios::binary);
+                        json loaded;
+                        in >> loaded;
+                        if (loaded.is_array()) {
+                            records = loaded;
+                            for (const auto& record : records) {
+                                lt::error_code ec;
+                                auto handle = add_record(session, record, ec);
+                                if (ec) {
+                                    std::cerr << "Skipping saved torrent: " << ec.message() << std::endl;
+                                } else if (record.contains("paused") && record["paused"].is_boolean() && record["paused"].get<bool>()) {
+                                    handle.pause();
+                                }
+                            }
+                        }
+                    }
+                    std::cout << json{{"ok", true}, {"restored", session.get_torrents().size()}}.dump() << std::endl;
+                } else if (command == "ping") {
                     std::cout << json{{"ok", true}, {"engine", "libtorrent"}, {"version", LIBTORRENT_VERSION}}.dump() << std::endl;
-                } else if (command == "add_magnet") {
-                    const auto uri = request.value("uri", "");
-                    const auto save_path = request.value("savePath", "");
-                    if (uri.rfind("magnet:?", 0) != 0 || save_path.empty())
-                        throw std::runtime_error("A magnet URI and destination folder are required.");
+                } else if (command == "add_magnet" || command == "add_torrent") {
+                    json record;
+                    record["kind"] = command == "add_magnet" ? "magnet" : "file";
+                    record["savePath"] = request.value("savePath", "");
+                    record["paused"] = request.value("paused", false);
+                    if (command == "add_magnet") {
+                        record["uri"] = request.value("uri", "");
+                        if (record["uri"].get<std::string>().rfind("magnet:?", 0) != 0)
+                            throw std::runtime_error("A valid magnet URI is required.");
+                    } else {
+                        record["file"] = request.value("file", "");
+                    }
+                    if (record["savePath"].get<std::string>().empty())
+                        throw std::runtime_error("A destination folder is required.");
+
                     lt::error_code ec;
-                    lt::add_torrent_params params = lt::parse_magnet_uri(uri, ec);
+                    auto handle = add_record(session, record, ec);
                     if (ec) throw std::runtime_error(ec.message());
-                    params.save_path = save_path;
-                    if (request.contains("paused") && request["paused"].get<bool>())
-                        params.flags |= lt::torrent_flags::paused;
-                    auto handle = session.add_torrent(std::move(params), ec);
-                    if (ec) throw std::runtime_error(ec.message());
-                    std::cout << json{{"ok", true}, {"torrent", snapshot(handle)}}.dump() << std::endl;
-                } else if (command == "add_torrent") {
-                    const auto file = request.value("file", "");
-                    const auto save_path = request.value("savePath", "");
-                    if (file.empty() || save_path.empty())
-                        throw std::runtime_error("A .torrent file and destination folder are required.");
-                    lt::error_code ec;
-                    auto params = lt::load_torrent_file(file, ec);
-                    if (ec) throw std::runtime_error(ec.message());
-                    params.save_path = save_path;
-                    if (request.contains("paused") && request["paused"].get<bool>())
-                        params.flags |= lt::torrent_flags::paused;
-                    auto handle = session.add_torrent(std::move(params), ec);
-                    if (ec) throw std::runtime_error(ec.message());
+                    const auto id = torrent_id(handle);
+                    record["id"] = id;
+                    auto it = std::find_if(records.begin(), records.end(), [&](const json& item) {
+                        return item.value("id", "") == id;
+                    });
+                    if (it == records.end()) records.push_back(record);
+                    else *it = record;
+                    persist_records(state_file, records);
                     std::cout << json{{"ok", true}, {"torrent", snapshot(handle)}}.dump() << std::endl;
                 } else if (command == "list") {
-                    std::vector<lt::torrent_handle> handles = session.get_torrents();
+                    const auto handles = session.get_torrents();
                     json items = json::array();
                     for (const auto& handle : handles) items.push_back(snapshot(handle));
                     std::cout << json{{"ok", true}, {"torrents", items}}.dump() << std::endl;
@@ -113,7 +188,7 @@ int main() {
                     const auto id = request.value("id", "");
                     bool found = false;
                     for (const auto& handle : session.get_torrents()) {
-                        if (handle.info_hashes().get_best().to_string() != id) continue;
+                        if (torrent_id(handle) != id) continue;
                         found = true;
                         if (command == "pause") handle.pause();
                         else if (command == "resume") handle.resume();
@@ -121,6 +196,16 @@ int main() {
                         break;
                     }
                     if (!found) throw std::runtime_error("Torrent not found.");
+                    if (command == "remove") {
+                        records.erase(std::remove_if(records.begin(), records.end(), [&](const json& item) {
+                            return item.value("id", "") == id;
+                        }), records.end());
+                    } else {
+                        for (auto& record : records) {
+                            if (record.value("id", "") == id) record["paused"] = command == "pause";
+                        }
+                    }
+                    persist_records(state_file, records);
                     std::cout << json{{"ok", true}, {"id", id}, {"command", command}}.dump() << std::endl;
                 } else if (command == "shutdown") {
                     std::cout << json{{"ok", true}}.dump() << std::endl;
