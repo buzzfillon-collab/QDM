@@ -117,7 +117,7 @@ export default function App() {
           {installState === 'idle' && (
             <>
               <span className="text-qdm-text">
-                QDM <span className="font-semibold text-qdm-accent">v{updateBanner.version}</span> is available
+                QDM Pro <span className="font-semibold text-qdm-accent">v{updateBanner.version}</span> is available
               </span>
               <div className="flex items-center gap-3">
                 <button
