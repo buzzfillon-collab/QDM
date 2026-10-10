@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Quantum Download Manager",
+        "title": "QDM Pro",
         "width": 1200,
         "height": 720,
         "minWidth": 900,
@@ -48,7 +48,7 @@
     "copyright": "QDM Pro fork; based on Quantum Download Manager by Parveen Bhadoo",
     "category": "Utility",
     "shortDescription": "Fast multi-segment download manager",
-    "longDescription": "Quantum Download Manager — a fast, cross-platform download manager with multi-segment acceleration, browser integration, and system tray support.",
+    "longDescription": "QDM Pro — a fast Windows download manager with multi-segment HTTP downloads, browser integration, media downloads, and native BitTorrent support.",
     "windows": {
       "digestAlgorithm": "sha256",
       "certificateThumbprint": null,
