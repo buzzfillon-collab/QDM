@@ -5,6 +5,7 @@
 #include <libtorrent/load_torrent.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/torrent_status.hpp>
+#include <libtorrent/version.hpp>
 #include <nlohmann/json.hpp>
 
 #include <iostream>
