@@ -8,6 +8,7 @@
 #include <libtorrent/version.hpp>
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -59,9 +60,9 @@ static std::string torrent_id(const lt::torrent_handle& handle) {
 
 static void persist_records(const std::string& state_file, const json& records) {
     if (state_file.empty()) return;
-    const std::filesystem::path target(state_file);
+    const auto target = std::filesystem::u8path(state_file);
     if (target.has_parent_path()) std::filesystem::create_directories(target.parent_path());
-    const auto temporary = target.string() + ".tmp";
+    const auto temporary = std::filesystem::u8path(state_file + ".tmp");
     {
         std::ofstream out(temporary, std::ios::binary | std::ios::trunc);
         if (!out) throw std::runtime_error("Cannot write torrent session state.");
