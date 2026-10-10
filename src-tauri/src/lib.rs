@@ -4,6 +4,7 @@ mod download_engine;
 mod hls_engine;
 mod queue_manager;
 mod tools;
+mod torrent_engine;
 mod types;
 mod yt_dlp;
 
@@ -24,6 +25,7 @@ pub struct AppState {
     pub browser_monitor: Arc<BrowserMonitor>,
     pub clipboard_monitor: Arc<ClipboardMonitor>,
     pub queue_manager: Arc<QueueManager>,
+    pub torrent_manager: Option<Arc<torrent_engine::TorrentManager>>,
 }
 
 // ── Config helpers ─────────────────────────────────────────────────────────────
@@ -235,6 +237,63 @@ async fn download_probe(
             error: Some(e),
         },
     })
+}
+
+
+ // BitTorrent commands — delegated to the native libtorrent helper.
+async fn torrent_request(
+    manager: Arc<torrent_engine::TorrentManager>,
+    request: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    tauri::async_runtime::spawn_blocking(move || manager.request(request))
+        .await
+        .map_err(|e| format!("Torrent worker failed: {e}"))?
+}
+
+fn torrent_manager_from_state(state: &State<'_, AppState>) -> Result<Arc<torrent_engine::TorrentManager>, String> {
+    state.torrent_manager.clone().ok_or_else(|| {
+        "BitTorrent support is unavailable: the libtorrent helper was not packaged with this build.".to_string()
+    })
+}
+
+#[tauri::command]
+async fn torrent_add_magnet(state: State<'_, AppState>, uri: String, save_path: String, paused: Option<bool>) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({
+        "command": "add_magnet", "uri": uri, "savePath": save_path, "paused": paused.unwrap_or(false)
+    })).await
+}
+
+#[tauri::command]
+async fn torrent_add_file(state: State<'_, AppState>, file: String, save_path: String, paused: Option<bool>) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({
+        "command": "add_torrent", "file": file, "savePath": save_path, "paused": paused.unwrap_or(false)
+    })).await
+}
+
+#[tauri::command]
+async fn torrent_list(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({"command": "list"})).await
+}
+
+#[tauri::command]
+async fn torrent_pause(state: State<'_, AppState>, id: String) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({"command": "pause", "id": id})).await
+}
+
+#[tauri::command]
+async fn torrent_resume(state: State<'_, AppState>, id: String) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({"command": "resume", "id": id})).await
+}
+
+#[tauri::command]
+async fn torrent_remove(state: State<'_, AppState>, id: String) -> Result<serde_json::Value, String> {
+    let manager = torrent_manager_from_state(&state)?;
+    torrent_request(manager, serde_json::json!({"command": "remove", "id": id})).await
 }
 
 // Browser monitor commands
@@ -889,6 +948,20 @@ pub fn run() {
 
             let engine = DownloadEngine::new(config.clone(), app_handle.clone());
 
+            // Keep libtorrent isolated from the existing HTTP engine. HTTP downloads
+            // remain available even if a development build has no native helper.
+            let torrent_resource_dir = app_handle.path().resource_dir().unwrap_or_default();
+            let torrent_manager = match torrent_engine::TorrentManager::start(&torrent_resource_dir) {
+                Ok(manager) => {
+                    log::info!("[torrent] libtorrent helper started");
+                    Some(Arc::new(manager))
+                }
+                Err(error) => {
+                    log::warn!("[torrent] BitTorrent is unavailable in this build: {error}");
+                    None
+                }
+            };
+
             // Browser monitor → auto-start downloads
             let engine_for_browser = Arc::clone(&engine);
             let app_for_browser = app_handle.clone();
@@ -1048,6 +1121,7 @@ pub fn run() {
                 browser_monitor,
                 clipboard_monitor,
                 queue_manager,
+                torrent_manager,
             });
 
             // Auto-install yt-dlp and ffmpeg if missing
@@ -1119,6 +1193,12 @@ pub fn run() {
             download_pause_all,
             download_resume_all,
             download_probe,
+            torrent_add_magnet,
+            torrent_add_file,
+            torrent_list,
+            torrent_pause,
+            torrent_resume,
+            torrent_remove,
             browser_get_media_list,
             browser_clear_media,
             browser_download_media,
