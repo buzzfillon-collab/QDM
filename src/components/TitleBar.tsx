@@ -21,7 +21,7 @@ export function TitleBar() {
             <Zap size={12} className="text-white" />
           </div>
           <span className="text-xs font-semibold text-qdm-textSecondary tracking-wide uppercase">
-            QDM
+            QDM Pro
           </span>
           {version && <span className="text-[10px] text-qdm-textMuted font-mono">v{version}</span>}
         </div>
