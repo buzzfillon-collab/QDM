@@ -6,6 +6,7 @@ on:
     tags: ['v*']
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -37,6 +38,7 @@ jobs:
         run: |
           cmake -S native/torrent-engine -B build/torrent-engine -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=Release
           cmake --build build/torrent-engine --config Release
+          pwsh -File native/torrent-engine/smoke.ps1 -Executable build/torrent-engine/Release/qdm-torrent-engine.exe
           New-Item -ItemType Directory -Force src-tauri/resources | Out-Null
           Copy-Item build/torrent-engine/Release/qdm-torrent-engine.exe src-tauri/resources/qdm-torrent-engine.exe
       - run: npm ci
