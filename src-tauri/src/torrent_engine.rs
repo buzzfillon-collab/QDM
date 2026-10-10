@@ -17,7 +17,7 @@ pub struct TorrentManager {
 }
 
 impl TorrentManager {
-    pub fn start(app_resource_dir: &Path) -> Result<Self, String> {
+    pub fn start(app_resource_dir: &Path, state_dir: &Path) -> Result<Self, String> {
         let mut candidates = vec![app_resource_dir.join("qdm-torrent-engine.exe")];
         if let Ok(exe) = std::env::current_exe() {
             if let Some(parent) = exe.parent() {
@@ -46,6 +46,8 @@ impl TorrentManager {
                 stdout: BufReader::new(stdout),
             }),
         };
+        let state_file = state_dir.join("torrents.json").to_string_lossy().to_string();
+        manager.request(json!({"command":"configure", "stateFile": state_file}))?;
         let pong = manager.request(json!({"command":"ping"}))?;
         if pong["ok"] != true {
             return Err(pong["error"].as_str().unwrap_or("Torrent helper failed its handshake").to_string());
