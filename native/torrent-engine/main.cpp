@@ -77,10 +77,7 @@ static void persist_records(const std::string& state_file, const json& records) 
 static lt::torrent_handle add_record(lt::session& session, const json& record, lt::error_code& ec) {
     const auto kind = record.value("kind", "");
     const auto save_path = record.value("savePath", "");
-    if (save_path.empty()) {
-        ec = std::make_error_code(std::errc::invalid_argument);
-        return {};
-    }
+    if (save_path.empty()) throw std::runtime_error("A destination folder is required.");
 
     lt::add_torrent_params params;
     if (kind == "magnet") {
@@ -89,10 +86,8 @@ static lt::torrent_handle add_record(lt::session& session, const json& record, l
         if (ec) return {};
     } else if (kind == "file") {
         const auto file = record.value("file", "");
-        if (file.empty() || !std::filesystem::exists(std::filesystem::u8path(file))) {
-            ec = std::make_error_code(std::errc::no_such_file_or_directory);
-            return {};
-        }
+        if (file.empty() || !std::filesystem::exists(std::filesystem::u8path(file)))
+            throw std::runtime_error("The selected .torrent file no longer exists.");
         params = lt::load_torrent_file(file, ec);
         if (ec) return {};
     } else {
@@ -142,12 +137,16 @@ int main() {
                         if (loaded.is_array()) {
                             records = loaded;
                             for (const auto& record : records) {
-                                lt::error_code ec;
-                                auto handle = add_record(session, record, ec);
-                                if (ec) {
-                                    std::cerr << "Skipping saved torrent: " << ec.message() << std::endl;
-                                } else if (record.contains("paused") && record["paused"].is_boolean() && record["paused"].get<bool>()) {
-                                    handle.pause();
+                                try {
+                                    lt::error_code ec;
+                                    auto handle = add_record(session, record, ec);
+                                    if (ec) {
+                                        std::cerr << "Skipping saved torrent: " << ec.message() << std::endl;
+                                    } else if (record.contains("paused") && record["paused"].is_boolean() && record["paused"].get<bool>()) {
+                                        handle.pause();
+                                    }
+                                } catch (const std::exception& e) {
+                                    std::cerr << "Skipping saved torrent: " << e.what() << std::endl;
                                 }
                             }
                         }
