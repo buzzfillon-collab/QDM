@@ -961,7 +961,7 @@ pub fn run() {
             // Keep libtorrent isolated from the existing HTTP engine. HTTP downloads
             // remain available even if a development build has no native helper.
             let torrent_resource_dir = app_handle.path().resource_dir().unwrap_or_default();
-            let torrent_manager = match torrent_engine::TorrentManager::start(&torrent_resource_dir) {
+            let torrent_manager = match torrent_engine::TorrentManager::start(&torrent_resource_dir, &db_path) {
                 Ok(manager) => {
                     log::info!("[torrent] libtorrent helper started");
                     Some(Arc::new(manager))
