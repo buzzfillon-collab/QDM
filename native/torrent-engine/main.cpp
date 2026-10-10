@@ -91,8 +91,7 @@ static lt::torrent_handle add_record(lt::session& session, const json& record, l
         params = lt::load_torrent_file(file, ec);
         if (ec) return {};
     } else {
-        ec = lt::errors::invalid_torrent_handle;
-        return {};
+        throw std::runtime_error("Unknown saved torrent type.");
     }
 
     params.save_path = save_path;
