@@ -78,7 +78,7 @@ static lt::torrent_handle add_record(lt::session& session, const json& record, l
     const auto kind = record.value("kind", "");
     const auto save_path = record.value("savePath", "");
     if (save_path.empty()) {
-        ec = lt::errors::invalid_torrent_handle;
+        ec = std::make_error_code(std::errc::invalid_argument);
         return {};
     }
 
@@ -90,7 +90,7 @@ static lt::torrent_handle add_record(lt::session& session, const json& record, l
     } else if (kind == "file") {
         const auto file = record.value("file", "");
         if (file.empty() || !std::filesystem::exists(std::filesystem::u8path(file))) {
-            ec = lt::errors::file_too_short;
+            ec = std::make_error_code(std::errc::no_such_file_or_directory);
             return {};
         }
         params = lt::load_torrent_file(file, ec);
@@ -135,8 +135,10 @@ int main() {
                     state_file = request.value("stateFile", "");
                     if (!state_file.empty() && std::filesystem::exists(std::filesystem::u8path(state_file))) {
                         std::ifstream in(std::filesystem::u8path(state_file), std::ios::binary);
-                        json loaded;
-                        in >> loaded;
+                        json loaded = json::array();
+                        try { in >> loaded; } catch (const std::exception& e) {
+                            std::cerr << "Ignoring corrupt torrent state: " << e.what() << std::endl;
+                        }
                         if (loaded.is_array()) {
                             records = loaded;
                             for (const auto& record : records) {
