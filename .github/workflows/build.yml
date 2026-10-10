@@ -1,4 +1,4 @@
-name: Build QDM
+name: Build QDM Pro
 
 on:
   push:
@@ -137,10 +137,6 @@ jobs:
           files: |
             artifacts/**/*.msi
             artifacts/**/*.exe
-            artifacts/**/*.dmg
-            artifacts/**/*.tar.gz
-            artifacts/**/*.AppImage
-            artifacts/**/*.deb
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -153,9 +149,8 @@ jobs:
             |----------|------|-------------|
             | 🪟 Windows | `*_x64_en-US.msi` | Windows Installer (MSI) |
             | 🪟 Windows | `*_x64-setup.exe` | Windows Installer (NSIS) |
-            | 🍎 macOS | `*.dmg` | macOS Disk Image (Apple Silicon) |
-            | 🐧 Linux | `*.AppImage` | Universal Linux (x64) |
-            | 🐧 Linux | `*.deb` | Debian/Ubuntu (x64) |
+
+            Linux packaging will follow after Windows torrent functionality is verified.
 
             ### Browser Extension
 
