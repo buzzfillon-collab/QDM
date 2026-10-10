@@ -28,6 +28,17 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+      - name: Install libtorrent native dependencies
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT/vcpkg.exe" install --triplet x64-windows-static-md --x-manifest-root=native/torrent-engine
+      - name: Build libtorrent helper
+        shell: pwsh
+        run: |
+          cmake -S native/torrent-engine -B build/torrent-engine -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/torrent-engine --config Release
+          New-Item -ItemType Directory -Force src-tauri/resources | Out-Null
+          Copy-Item build/torrent-engine/Release/qdm-torrent-engine.exe src-tauri/resources/qdm-torrent-engine.exe
       - run: npm ci
       - run: node scripts/fetch-yt-dlp.js
       - run: npm run tauri:build:win
@@ -43,6 +54,7 @@ jobs:
           retention-days: 30
 
   build-macos:
+    if: false # QDM Pro is Windows-only until the libtorrent integration is complete.
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -71,6 +83,7 @@ jobs:
           retention-days: 30
 
   build-linux:
+    if: false # Linux packaging follows after Windows feature parity.
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
@@ -108,7 +121,7 @@ jobs:
           retention-days: 30
 
   release:
-    needs: [build-windows, build-macos, build-linux]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -130,7 +143,7 @@ jobs:
           prerelease: false
           generate_release_notes: true
           body: |
-            ## Quantum Download Manager ${{ github.ref_name }}
+            ## QDM Pro ${{ github.ref_name }}
 
             ### Downloads
 
