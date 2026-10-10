@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/⚡-QDM-6c5ce7?style=for-the-badge&logoColor=white" alt="QDM" />
+  <img src="https://img.shields.io/badge/⚡-QDM%20Pro-6c5ce7?style=for-the-badge&logoColor=white" alt="QDM Pro" />
 </p>
 
-<h1 align="center">Quantum Download Manager</h1>
+<h1 align="center">QDM Pro</h1>
 
 <p align="center">
-  <strong>A modern, open-source download manager for Windows, macOS, and Linux</strong><br>
+  <strong>A community fork of Quantum Download Manager, adding native BitTorrent support</strong><br>
   <em>Multi-segment acceleration • YouTube & media • Browser integration • System tray • Beautiful dark UI</em>
 </p>
 
@@ -13,7 +13,7 @@
   <a href="https://github.com/PBhadoo/QDM/releases">
     <img src="https://img.shields.io/github/v/release/PBhadoo/QDM?style=flat-square&color=6c5ce7" alt="Latest Release" />
   </a>
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat-square" alt="Platform" />
+  <img src="https://img.shields.io/badge/platform-Windows%20x64%20(initial)-blue?style=flat-square" alt="Windows x64 initially" />
   <img src="https://img.shields.io/badge/built%20with-Tauri%202-24c8db?style=flat-square" alt="Tauri 2" />
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" />
 </p>
@@ -29,9 +29,16 @@
 
 ---
 
+> **QDM Pro status:** Windows x64 is the first target. Linux packaging will follow after the combined HTTP/HTTPS and BitTorrent implementation is working and verified. This fork preserves the original QDM MIT license and attribution. QDM Pro is an independent community project, not an official upstream release.
+
 <a id="features"></a>
 
 ## ✨ Features
+
+### BitTorrent (new in QDM Pro)
+- **Magnet links and .torrent files** — add torrents to the native libtorrent engine
+- **Peer and transfer status** — inspect progress, download/upload rates, peers and seeds
+- **Torrent controls** — pause, resume and remove torrents independently from HTTP jobs
 
 ### Core Download Engine
 - **⚡ Multi-Segment Acceleration** — Splits files into up to 32 parallel segments for maximum speed, each with its own HTTP connection and Range header
