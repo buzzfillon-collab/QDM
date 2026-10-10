@@ -81,7 +81,6 @@ impl Drop for TorrentManager {
             let _ = serde_json::to_writer(&mut bridge.stdin, &json!({"command":"shutdown"}));
             let _ = bridge.stdin.write_all(b"\n");
             let _ = bridge.stdin.flush();
-            let _ = bridge._child.kill();
             let _ = bridge._child.wait();
         }
     }
