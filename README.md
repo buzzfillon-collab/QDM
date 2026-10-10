@@ -72,10 +72,10 @@
 ### App & System
 - **🖥️ System Tray** — Minimize to tray, background operation, tray icon with download status
 - **🔔 OS Notifications** — Native desktop notifications for completed downloads
-- **🔄 Auto-Updater** — In-app update check on startup; one-click download and install of new versions
+- **🔄 Fork-safe updates** — Automatic app updates are disabled until QDM Pro publishes its own releases; upstream QDM installers are never offered
 - **⬇️ Tool Management** — Auto-installs yt-dlp and ffmpeg on first launch; in-app updater for both
 - **🎨 Frameless Dark UI** — Custom titlebar, segment progress bars, clean dark theme throughout
-- **🌍 Cross-Platform** — Windows (x64), macOS (Apple Silicon), Linux (x64)
+- **🪟 Windows x64 first** — Linux packaging is planned after torrent integration is verified
 
 ---
 
@@ -144,7 +144,7 @@ The extension authenticates every request with a session token (`X-QDM-Token`) o
 
 ### Pre-built Releases
 
-Download the latest version from the [Releases page](https://github.com/PBhadoo/QDM/releases):
+Development builds are published as artifacts by [GitHub Actions](https://github.com/buzzfillon-collab/QDM/actions). Open the latest successful **Build QDM Pro** run and download the `QDM-Windows` artifact. Tagged QDM Pro releases will appear on this repository’s [Releases page](https://github.com/buzzfillon-collab/QDM/releases).
 
 | Platform | File | Notes |
 |----------|------|-------|
@@ -167,7 +167,7 @@ Download the latest version from the [Releases page](https://github.com/PBhadoo/
 
 ### yt-dlp & ffmpeg
 
-QDM **auto-installs** yt-dlp and ffmpeg on first launch if they are not found. A progress banner is shown while they download. You can also manage them manually via **Settings → Tools**.
+QDM Pro **auto-installs** yt-dlp and ffmpeg on first launch if they are not found. A progress banner is shown while they download. You can also manage them manually via **Settings → Tools**.
 
 ---
 
@@ -289,9 +289,9 @@ QDM auto-detects YouTube, Shorts, Reels, and other yt-dlp-supported URLs and sho
 
 QDM checks for updates automatically on startup. If a new version is available:
 
-- A banner appears at the top: **"QDM v1.x.x is available — Install now"**
-- Click **Install now** to download and run the installer in-place
-- On **Windows**: the NSIS installer launches and QDM exits to allow replacement
+- QDM Pro automatic app updates are currently disabled while this fork establishes its own release pipeline.
+- Install future QDM Pro releases from this repository’s Releases page.
+- On **Windows**: the NSIS installer launches and QDM Pro exits to allow replacement (when self-updates are enabled in a future release).
 - On **macOS**: the `.dmg` opens — drag to Applications to complete
 - On **Linux**: the `.AppImage` is downloaded and the folder opens
 
