@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Quantum Download Manager",
+  "productName": "QDM Pro",
   "version": "1.0.3",
-  "identifier": "com.parveenbhadoo.qdm",
+  "identifier": "com.qdmpro.downloadmanager",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -37,7 +37,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "resources": ["resources/yt-dlp*"],
+    "resources": ["resources/yt-dlp*", "resources/qdm-torrent-engine.exe"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -45,7 +45,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "copyright": "Copyright © 2026 Parveen Bhadoo",
+    "copyright": "QDM Pro fork; based on Quantum Download Manager by Parveen Bhadoo",
     "category": "Utility",
     "shortDescription": "Fast multi-segment download manager",
     "longDescription": "Quantum Download Manager — a fast, cross-platform download manager with multi-segment acceleration, browser integration, and system tray support.",
