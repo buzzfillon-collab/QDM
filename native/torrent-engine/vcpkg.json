@@ -1,0 +1,8 @@
+{
+  "name": "qdm-pro-torrent-engine",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "libtorrent-rasterbar",
+    "nlohmann-json"
+  ]
+}
