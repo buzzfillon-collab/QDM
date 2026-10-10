@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PBhadoo/QDM/releases">
-    <img src="https://img.shields.io/github/v/release/PBhadoo/QDM?style=flat-square&color=6c5ce7" alt="Latest Release" />
+  <a href="https://github.com/buzzfillon-collab/QDM/releases">
+    <img src="https://img.shields.io/github/v/release/buzzfillon-collab/QDM?style=flat-square&color=6c5ce7" alt="Latest QDM Pro Release" />
   </a>
   <img src="https://img.shields.io/badge/platform-Windows%20x64%20(initial)-blue?style=flat-square" alt="Windows x64 initially" />
   <img src="https://img.shields.io/badge/built%20with-Tauri%202-24c8db?style=flat-square" alt="Tauri 2" />
