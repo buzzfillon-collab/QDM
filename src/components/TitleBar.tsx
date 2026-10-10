@@ -34,7 +34,7 @@ export function TitleBar() {
             <Zap size={9} className="text-white" />
           </div>
           <span className="text-xs font-semibold text-qdm-textSecondary tracking-wide">
-            Quantum Download Manager
+            QDM Pro
           </span>
         </div>
       )}
