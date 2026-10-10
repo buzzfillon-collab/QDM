@@ -77,7 +77,7 @@ export function AboutDialog() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-qdm-accent to-purple-400 flex items-center justify-center">
               <Zap size={14} className="text-white" />
             </div>
-            <h2 className="text-sm font-semibold text-qdm-text">About QDM</h2>
+            <h2 className="text-sm font-semibold text-qdm-text">About QDM Pro</h2>
           </div>
           <button
             onClick={() => setShowAbout(false)}
@@ -94,14 +94,13 @@ export function AboutDialog() {
           </div>
 
           <h1 className="text-xl font-bold text-qdm-text mb-1">
-            Quantum Download Manager
+            QDM Pro
           </h1>
           <p className="text-xs font-mono text-qdm-textMuted mb-4">v{version}</p>
 
-          <p className="text-xs text-qdm-textMuted mb-1">Made by <span className="text-qdm-accent font-semibold">Parveen Bhadoo</span></p>
+          <p className="text-xs text-qdm-textMuted mb-1">Based on the original QDM by <span className="text-qdm-accent font-semibold">Parveen Bhadoo</span></p>
           <p className="text-sm text-qdm-textSecondary leading-relaxed mb-6 max-w-sm mx-auto">
-            A modern, open-source download manager for Windows with multi-segment
-            downloading, pause/resume support, and a beautiful dark interface.
+            QDM Pro extends the original open-source QDM with native BitTorrent support. The original project and author retain their attribution under the MIT license.
           </p>
 
           {/* Credits */}
@@ -170,7 +169,7 @@ export function AboutDialog() {
             {updateState === 'upToDate' && (
               <div className="flex items-center gap-2 justify-center text-xs text-green-400">
                 <CheckCircle size={13} />
-                You're up to date (v{version})
+                QDM Pro self-updates will be enabled when this fork publishes its own releases.
               </div>
             )}
             {updateState === 'available' && updateInfo && (
@@ -224,14 +223,14 @@ export function AboutDialog() {
           {/* Links */}
           <div className="flex items-center justify-center gap-3">
             <button
-              onClick={() => openLink('https://github.com/PBhadoo/QDM')}
+              onClick={() => openLink('https://github.com/buzzfillon-collab/QDM')}
               className="btn-secondary flex items-center gap-2"
             >
               <Github size={14} />
               GitHub
             </button>
             <button
-              onClick={() => openLink('https://github.com/PBhadoo/QDM/issues')}
+              onClick={() => openLink('https://github.com/buzzfillon-collab/QDM/issues')}
               className="btn-ghost"
             >
               Report Issue
